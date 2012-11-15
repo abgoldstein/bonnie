@@ -110,6 +110,23 @@ module Measures
       HQMF2JS::Generator::CodesToJson.from_value_sets(measure.value_sets)
     end
 
+    def self.generate_qrda_patients(measures)
+      patient_needs = {}
+      all_value_sets = {}
+
+      Measure.all.to_a.each do |measure|
+        puts "Translating #{measure.measure_id} to HQMF model."
+        patient_needs[measure.measure_id] = measure.all_data_criteria.map{|dc| HQMF::DataCriteria.from_json(dc.keys.first, dc.values.first)}
+        patient_needs[measure.measure_id].uniq!
+
+        measure.value_sets.each do |value_set|
+          all_value_sets[measure.measure_id] = measure.value_sets
+        end
+      end
+
+      HQMF::Generator.generate_qrda_patients(patient_needs, all_value_sets)
+    end
+
     private
 
     def self.measure_js(measure, population_index)
